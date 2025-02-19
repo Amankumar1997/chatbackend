@@ -3,87 +3,86 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 const User = require("../models/User");
-
-const createUser = async (req, res) => {
-  const { username, email, password } = req.body;
+const Experience = require("../models/Experience");
+const updateProfile = async (req, res) => {
+  const userId = req.user._id;
   try {
-    if (!username || !email || !password) {
-      res.status(400).json({ error: "Invalid params" });
-    }
-    const user = await User.findOne({ email });
-
-    if (user) {
-      return res.status(500).json({
-        message: "User already exist",
-        statusCode: 500,
-      });
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ message: "userId Required", statusCode: 400 });
     }
 
-    const saltRounds = 10;
-    const hashPassword = await bcrypt.hash(password, saltRounds);
-    const currentHashPass = await bcrypt.compare(password, hashPassword);
-    const newUser = new User({
-      username,
-      email,
-      password: hashPassword,
+    const user = await User.findOne({ _id: req.user._id });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User does not exist", statusCode: 404 });
+    }
+
+    // Update the user's profile
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId },
+      { $set: req.body },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      message: "Profile updated succesfully",
+      statusCode: 200,
+      data: updatedUser,
     });
-    await newUser.save();
-    return res.status(201).json({ message: "User Registerd" });
   } catch (error) {
-    res.status(500).json({ error, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ error, message: "Internal Server Error", statusCode: 500 });
+  }
+};
+const getProfile = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res
+        .status(404)
+        .json({ message: "User not found", statusCode: 404 });
+    }
+
+    const data = await User.findOne({ _id: req.user._id }).populate(
+      "experience"
+    );
+
+    return res
+      .status(200)
+      .json({ message: "success", statusCode: 200, data: data });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error, message: "Internal Server Error", statusCode: 500 });
   }
 };
 
-// const loginUser = async (req, res) => {
-//     const { username, email, password } = req.body;
-//     try {
-//       if (!username || !email || !password) {
-//         res.status(400).json({ error: "Invalid params" });
-//       }
-//       const user = await User.findOne({ email });
+const addExperince = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.user._id });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User does not exist", statusCode: 404 });
+    }
 
-//       // if (user) {
-//       //   return res.status(500).json({
-//       //     message: "User already exist",
-//       //     statusCode: 500,
-//       //   });
-//       // }
+    const newUser = new Experience(req.body);
 
-//       const saltRounds = 10;
-//       const hashPassword = await bcrypt.hash(password, saltRounds);
-//      const currentHashPass=await bcrypt.compare(password, hashPassword)
-//       const newUser = new User({
-//         username,
-//         email,
-//         password: hashPassword,
-//       });
-//       await newUser.save();
-//       return res.status(201).json({ message: "User Registerd" });
-//       // let token;
-//       // try {
-//       //   //Creating jwt token
-//       //   token = jwt.sign(
-//       //     {
-//       //         username
-//       //     //   userId: user.id,
-//       //     //   email: existingUser.email,
-//       //     },
-//       //     process.env.secretKey,
-//       //     { expiresIn: "1m" }
-//       //   );
+    const data = await newUser.save();
 
-//       //   console.log(token);
-//       // const d=  jwt.verify(token, process.env.secretKey);
-//       // console.log("d",d);
-//       // } catch (err) {
-//       //   console.log(err);
-//       //   const error = new Error("Error! Something went wrong.");
-//       //   return next(error);
-//       // }
-//       // console.log("token", token);
-//     } catch (error) {
-//       res.status(500).json({ error, message: "Internal Server Error" });
-//     }
-//   };
+    return res.status(200).json({
+      message: "Experience Added succesfully",
+      statusCode: 200,
+      data,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error, message: "Internal Server Error", statusCode: 500 });
+  }
+};
 
-module.exports = { createUser };
+module.exports = { updateProfile, getProfile, addExperince };

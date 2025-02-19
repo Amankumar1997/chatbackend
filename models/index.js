@@ -1,7 +1,8 @@
 const ChatMessage = require("./ChatMessage");
+const Auth = require("./Auth");
 const User = require("./User");
-
 module.exports = {
-  ChatMessage,
-  User,
+  // ChatMessage,
+  Auth,
+  User
 };
