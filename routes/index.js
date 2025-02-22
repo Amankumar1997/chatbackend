@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { createUser, login } = require("../controllers/authController");
+const { createUser, login } = require("../controllers/userController");
 const {
   updateProfile,
   getProfile,
   addExperince,
-} = require("../controllers/userController");
+} = require("../controllers/profileController");
 const verifyToken = require("../middleware/verifytoken");
 
 router.post("/register", createUser);
