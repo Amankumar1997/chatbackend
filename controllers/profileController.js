@@ -91,7 +91,7 @@ const addExperince = async (req, res) => {
         .status(404)
         .json({ message: "User does not exist", statusCode: 404 });
     }
-    await  Profile.findOneAndUpdate(
+    await Profile.findOneAndUpdate(
       { user: userId },
       { $push: { experience: newExperience._id } },
       { new: true }
@@ -110,4 +110,28 @@ const addExperince = async (req, res) => {
   }
 };
 
-module.exports = { updateProfile, getProfile, addExperince };
+const deleteExperience = async (req, res) => {
+  try {
+    const { deleteId } = req.body;
+    const userId = req.user._id;
+
+    await Profile.findOneAndUpdate(
+      { user: userId },
+      { $pull: { experience: deleteId } },
+      { new: true }
+    );
+    await Experience.findOneAndDelete({ _id: deleteId });
+    return res.status(200).json({
+      message: "Experience Deleted succesfully",
+      statusCode: 200,
+      data: {
+        deleteId,
+      },
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error, message: "Internal Server Error", statusCode: 500 });
+  }
+};
+module.exports = { updateProfile, getProfile, addExperince, deleteExperience };
