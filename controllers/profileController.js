@@ -19,14 +19,14 @@ const updateProfile = async (req, res) => {
 
     // Find the user's profile and update it
     let profile = await Profile.findOneAndUpdate(
-      { user: userId }, 
+      { user: userId },
       {
         $set: {
           ...(firstName && { firstName }),
           ...(lastName && { lastName }),
           ...(headline && { headline }),
         },
-        ...(experience && { $push: { experience: { $each: experience } } }), 
+        ...(experience && { $push: { experience: { $each: experience } } }),
       },
       { new: true, upsert: true }
     );
@@ -82,16 +82,21 @@ const getProfile = async (req, res) => {
 
 const addExperince = async (req, res) => {
   try {
-    const user = await Profile.findOne({ _id: req.user._id });
+    const userId = req.user._id;
+    const user = await Profile.findOne({ user: req.user._id });
+    const newExperience = new Experience(req.body);
+
     if (!user) {
       return res
         .status(404)
         .json({ message: "User does not exist", statusCode: 404 });
     }
-
-    const newUser = new Experience(req.body);
-
-    const data = await newUser.save();
+    await  Profile.findOneAndUpdate(
+      { user: userId },
+      { $push: { experience: newExperience._id } },
+      { new: true }
+    );
+    const data = await newExperience.save();
 
     return res.status(200).json({
       message: "Experience Added succesfully",
