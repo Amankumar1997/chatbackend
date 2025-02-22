@@ -5,6 +5,8 @@ const {
   updateProfile,
   getProfile,
   addExperince,
+  deleteExperience,
+  updateExperience
 } = require("../controllers/profileController");
 const verifyToken = require("../middleware/verifytoken");
 
@@ -13,4 +15,6 @@ router.post("/login", login);
 router.put("/updateProfile", verifyToken, updateProfile);
 router.get("/getProfile", verifyToken, getProfile);
 router.post("/addExperince", verifyToken, addExperince);
+router.delete("/deleteExperience",verifyToken,deleteExperience);
+router.put("/updateExperience",verifyToken,updateExperience)
 module.exports = router;

@@ -134,4 +134,37 @@ const deleteExperience = async (req, res) => {
       .json({ error, message: "Internal Server Error", statusCode: 500 });
   }
 };
-module.exports = { updateProfile, getProfile, addExperince, deleteExperience };
+
+const updateExperience = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const userId = req.user._id;
+    await Profile.findOneAndUpdate(
+      { user: userId, "experience._id": id },
+      { $set: req.body },
+      { new: true }
+    );
+
+    await Experience.findOneAndUpdate(
+      { _id: id },
+      { $set: req.body },
+      { new: true }
+    );
+    return res.status(200).json({
+      message: "Experience Updated succesfully",
+      statusCode: 200,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error, message: "Internal Server Error", statusCode: 500 });
+  }
+};
+
+module.exports = {
+  updateProfile,
+  getProfile,
+  addExperince,
+  deleteExperience,
+  updateExperience,
+};
