@@ -9,7 +9,10 @@ const {
   updateExperience,
   addEducation,
   updateEducation,
-  deleteEducation
+  deleteEducation,
+  addProject,
+  updateProject,
+  deleteProject
 } = require("../controllers/profileController");
 const verifyToken = require("../middleware/verifytoken");
 
@@ -23,5 +26,8 @@ router.put("/updateExperience",verifyToken,updateExperience);
 router.post("/addEducation",verifyToken,addEducation);
 router.put("/updateEducation",verifyToken,updateEducation);
 router.delete("/deleteEducation",verifyToken,deleteEducation);
+router.post("/addProject",verifyToken,addProject);
+router.put("/updateProject",verifyToken,updateProject);
+router.delete("/deleteProject",verifyToken,deleteProject);
 
 module.exports = router;

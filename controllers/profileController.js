@@ -6,6 +6,7 @@ const Profile = require("../models/Profile");
 const Experience = require("../models/Experience");
 const User = require("../models/User");
 const Education = require("../models/Education");
+const Projects = require("../models/Projects");
 
 const updateProfile = async (req, res) => {
   const userId = req.user._id;
@@ -61,7 +62,7 @@ const getProfile = async (req, res) => {
 
     const userProfile = await User.findById(req.user._id).populate({
       path: "profile",
-      populate: [{ path: "experience" }, { path: "education" }],
+      populate: [{ path: "experience" }, { path: "education" },{ path: "projects" }],
     });
 
     if (!userProfile) {
@@ -218,7 +219,7 @@ const updateEducation = async (req, res) => {
       .json({ error, message: "Internal Server Error", statusCode: 500 });
   }
 };
-// 
+//
 
 const deleteEducation = async (req, res) => {
   try {
@@ -244,6 +245,87 @@ const deleteEducation = async (req, res) => {
       .json({ error, message: "Internal Server Error", statusCode: 500 });
   }
 };
+const addProject = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await Profile.findOne({ user: req.user._id });
+    const newProject = new Projects(req.body);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User does not exist", statusCode: 404 });
+    }
+    await Profile.findOneAndUpdate(
+      { user: userId },
+      { $push: { projects: newProject._id } },
+      { new: true }
+    );
+    const data = await newProject.save();
+
+    return res.status(200).json({
+      message: "Project Added succesfully",
+      statusCode: 200,
+      data,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error, message: "Internal Server Error", statusCode: 500 });
+  }
+};
+
+const updateProject = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const userId = req.user._id;
+    await Profile.findOneAndUpdate(
+      { user: userId, "projects._id": id },
+      { $set: req.body },
+      { new: true }
+    );
+
+    await Projects.findOneAndUpdate(
+      { _id: id },
+      { $set: req.body },
+      { new: true }
+    );
+    return res.status(200).json({
+      message: "Project Updated succesfully",
+      statusCode: 200,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error, message: "Internal Server Error", statusCode: 500 });
+  }
+};
+//
+
+const deleteProject = async (req, res) => {
+  try {
+    const { deleteId } = req.body;
+    const userId = req.user._id;
+
+    await Profile.findOneAndUpdate(
+      { user: userId },
+      { $pull: { projects: deleteId } },
+      { new: true }
+    );
+    await Projects.findOneAndDelete({ _id: deleteId });
+    return res.status(200).json({
+      message: "Project Deleted succesfully",
+      statusCode: 200,
+      data: {
+        deleteId,
+      },
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error, message: "Internal Server Error", statusCode: 500 });
+  }
+};
 module.exports = {
   updateProfile,
   getProfile,
@@ -252,5 +334,8 @@ module.exports = {
   updateExperience,
   addEducation,
   updateEducation,
-  deleteEducation
+  deleteEducation,
+  addProject,
+  updateProject,
+  deleteProject,
 };

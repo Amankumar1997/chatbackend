@@ -7,6 +7,7 @@ const ProfileSchema = new mongoose.Schema({
   headline: String,
   experience: [{ type: mongoose.Schema.Types.ObjectId, ref: "Experience" }],
   education: [{ type: mongoose.Schema.Types.ObjectId, ref: "Education" }],
+  projects: [{ type: mongoose.Schema.Types.ObjectId, ref: "Projects" }],
 });
 
 module.exports = mongoose.model("Profile", ProfileSchema);
