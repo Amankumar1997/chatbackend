@@ -5,7 +5,8 @@ const ProfileSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
   headline: String,
-  experience: [{ type: mongoose.Schema.Types.ObjectId, ref: "Experience" }]
+  experience: [{ type: mongoose.Schema.Types.ObjectId, ref: "Experience" }],
+  education: [{ type: mongoose.Schema.Types.ObjectId, ref: "Education" }],
 });
 
 module.exports = mongoose.model("Profile", ProfileSchema);
