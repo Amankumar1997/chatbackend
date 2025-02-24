@@ -5,6 +5,7 @@ require("dotenv").config();
 const Profile = require("../models/Profile");
 const Experience = require("../models/Experience");
 const User = require("../models/User");
+const Education = require("../models/Education");
 
 const updateProfile = async (req, res) => {
   const userId = req.user._id;
@@ -27,6 +28,7 @@ const updateProfile = async (req, res) => {
           ...(headline && { headline }),
         },
         ...(experience && { $push: { experience: { $each: experience } } }),
+        // ...(education && { $push: { education: { $each: education } } }),
       },
       { new: true, upsert: true }
     );
@@ -59,7 +61,7 @@ const getProfile = async (req, res) => {
 
     const userProfile = await User.findById(req.user._id).populate({
       path: "profile",
-      populate: { path: "experience" },
+      populate: [{ path: "experience" }, { path: "education" }],
     });
 
     if (!userProfile) {
@@ -161,10 +163,94 @@ const updateExperience = async (req, res) => {
   }
 };
 
+const addEducation = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await Profile.findOne({ user: req.user._id });
+    const newDucation = new Education(req.body);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User does not exist", statusCode: 404 });
+    }
+    await Profile.findOneAndUpdate(
+      { user: userId },
+      { $push: { education: newDucation._id } },
+      { new: true }
+    );
+    const data = await newDucation.save();
+
+    return res.status(200).json({
+      message: "Education Added succesfully",
+      statusCode: 200,
+      data,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error, message: "Internal Server Error", statusCode: 500 });
+  }
+};
+
+const updateEducation = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const userId = req.user._id;
+    await Profile.findOneAndUpdate(
+      { user: userId, "education._id": id },
+      { $set: req.body },
+      { new: true }
+    );
+
+    await Education.findOneAndUpdate(
+      { _id: id },
+      { $set: req.body },
+      { new: true }
+    );
+    return res.status(200).json({
+      message: "Education Updated succesfully",
+      statusCode: 200,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error, message: "Internal Server Error", statusCode: 500 });
+  }
+};
+// 
+
+const deleteEducation = async (req, res) => {
+  try {
+    const { deleteId } = req.body;
+    const userId = req.user._id;
+
+    await Profile.findOneAndUpdate(
+      { user: userId },
+      { $pull: { education: deleteId } },
+      { new: true }
+    );
+    await Education.findOneAndDelete({ _id: deleteId });
+    return res.status(200).json({
+      message: "Experience Deleted succesfully",
+      statusCode: 200,
+      data: {
+        deleteId,
+      },
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error, message: "Internal Server Error", statusCode: 500 });
+  }
+};
 module.exports = {
   updateProfile,
   getProfile,
   addExperince,
   deleteExperience,
   updateExperience,
+  addEducation,
+  updateEducation,
+  deleteEducation
 };
